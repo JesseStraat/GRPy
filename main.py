@@ -33,18 +33,20 @@ class metric:
                     sumlist = [invtensor[mu,a]*(diff(self.tensor[sig,a],variables[rho]) + diff(self.tensor[rho,a],variables[sig]) - diff(self.tensor[rho,sig],variables[a])) for a in range(n)]
                     chris[mu][rho][sig] = 0.5*sum(sumlist)
         
-        return christoffel(np.array(chris))
+        return christoffel(Array(chris))
 
 class christoffel:
-    def __init__(self, symbol = np.zeros((4,4,4))):
-        if not isinstance(symbol, np.ndarray):
-            raise TypeError("symbol must be numpy array")
+    def __init__(self, symbol = Array([[[0]*4 for _ in range(4)] for __ in range(4)]) ):
+        if not isinstance(symbol, Array):
+            raise TypeError("symbol must be sympy array")
         tens_shape = symbol.shape
         if len(tens_shape) != 3 or not all(n == tens_shape[0] for n in tens_shape):
             raise ValueError("symbol is not a square 3-array")
-        for T in symbol:
-            if not np.array_equal(T.T, T):
-                raise ValueError("symbol is not symmetric in the bottom two indices")
+        for mu in range(tens_shape[0]):
+            for rho in range(tens_shape[0]):
+                for sig in range(rho+1, tens_shape[0]):
+                    if not symbol[mu,rho,sig] == symbol[mu,sig,rho]:
+                        raise ValueError("symbol is not symmetric in the bottom two indices")
         
         # Tensor is a properly anti-symmetric square np array
         self.symbol = symbol
@@ -53,16 +55,18 @@ class christoffel:
         return str(self.symbol)
 
 class riemann:
-    def __init__(self, tensor = np.zeros((4,4,4,4))):
-        if not isinstance(tensor, np.ndarray):
-            raise TypeError("tensor must be numpy array")
+    def __init__(self, tensor = Array([[[[0]*4 for _ in range(4)] for __ in range(4)] for ___ in range(4)]) ):
+        if not isinstance(tensor, Array):
+            raise TypeError("tensor must be sympy array")
         tens_shape = tensor.shape
         if len(tens_shape) != 4 or not all(n == tens_shape[0] for n in tens_shape):
             raise ValueError("tensor is not a square 4-array")
-        for T in tensor:
-            for U in T:
-                if not np.array_equal(U.T, -U):
-                    raise ValueError("tensor is not anti-symmetric in the last two indices")
+        for rho in range(tens_shape[0]):
+            for sig in range(tens_shape[0]):
+                for mu in range(tens_shape[0]):
+                    for nu in range(mu+1, tens_shape[0]):
+                        if not tensor[rho,sig,mu,nu] == -1*tensor[rho,sig,nu,mu]:
+                            raise ValueError("tensor is not anti-symmetric in the last two indices")
         
         # Tensor is a properly anti-symmetric square np array
         self.tensor = tensor
@@ -71,12 +75,12 @@ class riemann:
         return str(self.tensor)
 
 class ricci:
-    def __init__(self, tensor = np.zeros((4,4))):
-        if not isinstance(tensor, np.ndarray):
-            raise TypeError("tensor must be numpy array")
+    def __init__(self, tensor = Matrix([[0]*4 for _ in range(4)]) ):
+        if not isinstance(tensor, Matrix):
+            raise TypeError("tensor must be sympy matrix")
         tens_shape = tensor.shape
         if len(tens_shape) != 2 or not all(n == tens_shape[0] for n in tens_shape):
-            raise ValueError("tensor is not a square 4-array")
+            raise ValueError("tensor is not a square 2-array")
         
         # Tensor is a square np array
         self.tensor = tensor
