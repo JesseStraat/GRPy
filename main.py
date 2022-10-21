@@ -1,4 +1,3 @@
-import numpy as np
 from sympy import *
 
 class metric:
@@ -11,7 +10,7 @@ class metric:
         if not tensor.T.equals(tensor):                                         # Checks whether tensor is symmetric
             raise ValueError("tensor is not symmetric")
         
-        # Tensor is a square symmetric np array
+        # Tensor is a square symmetric sympy array
         self.tensor = tensor
     
     def __repr__(self):
@@ -48,7 +47,7 @@ class christoffel:
                     if not symbol[mu,rho,sig] == symbol[mu,sig,rho]:
                         raise ValueError("symbol is not symmetric in the bottom two indices")
         
-        # Tensor is a properly anti-symmetric square np array
+        # Tensor is a properly anti-symmetric square sympy array
         self.symbol = symbol
     
     def __repr__(self):
@@ -68,7 +67,7 @@ class riemann:
                         if not tensor[rho,sig,mu,nu] == -1*tensor[rho,sig,nu,mu]:
                             raise ValueError("tensor is not anti-symmetric in the last two indices")
         
-        # Tensor is a properly anti-symmetric square np array
+        # Tensor is a properly anti-symmetric square sympy array
         self.tensor = tensor
     
     def __repr__(self):
@@ -82,7 +81,7 @@ class ricci:
         if len(tens_shape) != 2 or not all(n == tens_shape[0] for n in tens_shape):
             raise ValueError("tensor is not a square 2-array")
         
-        # Tensor is a square np array
+        # Tensor is a square sympy array
         self.tensor = tensor
     
     def __repr__(self):
