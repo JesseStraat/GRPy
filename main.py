@@ -33,6 +33,9 @@ class metric:
                     chris[mu][rho][sig] = 0.5*sum(sumlist)
         
         return christoffel(Array(chris))
+        
+    def riemann(self, variables):
+        return self.christoffel(variables).riemann(variables)
 
 class christoffel:
     def __init__(self, symbol = Array([[[0]*4 for _ in range(4)] for __ in range(4)]) ):
@@ -52,6 +55,23 @@ class christoffel:
     
     def __repr__(self):
         return str(self.symbol)
+    
+    def riemann(self, variables):
+        n = self.symbol.shape[0]
+        if len(variables) != n:
+            raise ValueError(f"an inappropriate number of variables was given, must be {n}")
+        for var in variables:
+            if not isinstance(var, Symbol):
+                raise TypeError("variables should be of class sympy.Symbol")
+        riem = [[[[0]*n for _ in range(n)] for __ in range(n)] for ___ in range(n)]
+        
+        for rho in range(n):
+            for sig in range(n):
+                for mu in range(n):
+                    for nu in range(n):
+                        riem[rho][sig][mu][nu] = diff(self.symbol[rho,nu,sig],variables[mu]) - diff(self.symbol[rho,mu,sig],variables[nu]) + sum(self.symbol[rho,mu,a]*self.symbol[a,nu,sig] - self.symbol[rho,nu,a]*self.symbol[a,mu,sig] for a in range(n))
+        
+        return riemann(Array(riem))
 
 class riemann:
     def __init__(self, tensor = Array([[[[0]*4 for _ in range(4)] for __ in range(4)] for ___ in range(4)]) ):
