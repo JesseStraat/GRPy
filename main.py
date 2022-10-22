@@ -33,9 +33,18 @@ class metric:
                     chris[mu][rho][sig] = 0.5*sum(sumlist)
         
         return christoffel(Array(chris))
-        
+    
+    def geodesics(self, variables, parameter):
+        return self.christoffel(variables).geodesics(variables, parameter)
+    
     def riemann(self, variables):
         return self.christoffel(variables).riemann(variables)
+    
+    def ricci(self, variables):
+        return self.riemann(variables).ricci()
+    
+    def rscal(self, variables):
+        return self.ricci(variables).rscal(self)
 
 class christoffel:
     def __init__(self, symbol = Array([[[0]*4 for _ in range(4)] for __ in range(4)]) ):
@@ -56,6 +65,20 @@ class christoffel:
     def __repr__(self):
         return str(self.symbol)
     
+    def geodesics(self, variables, parameter):
+        l = parameter
+        x = variables
+        output = [0] * len(x)
+        
+        for mu in range(len(x)):
+            s = Function(x[mu])(l).diff(l).diff(l)
+            for a in range(len(x)):
+                for b in range(len(x)):
+                    s += self.symbol[mu,a,b]*Function(x[a])(l).diff(l)*Function(x[b])(l).diff(l)
+            output[mu] = Eq(s, 0)
+        
+        return output
+    
     def riemann(self, variables):
         n = self.symbol.shape[0]
         if len(variables) != n:
@@ -72,6 +95,12 @@ class christoffel:
                         riem[rho][sig][mu][nu] = diff(self.symbol[rho,nu,sig],variables[mu]) - diff(self.symbol[rho,mu,sig],variables[nu]) + sum(self.symbol[rho,mu,a]*self.symbol[a,nu,sig] - self.symbol[rho,nu,a]*self.symbol[a,mu,sig] for a in range(n))
         
         return riemann(Array(riem))
+    
+    def ricci(self, variables):
+        return self.riemann(variables).ricci()
+    
+    def rscal(self, variables, g):
+        return self.ricci(variables).rscal(g)
 
 class riemann:
     def __init__(self, tensor = Array([[[[0]*4 for _ in range(4)] for __ in range(4)] for ___ in range(4)]) ):
@@ -92,6 +121,18 @@ class riemann:
     
     def __repr__(self):
         return str(self.tensor)
+    
+    def ricci(self):
+        n = self.tensor.shape[0]
+        ric = Matrix.zeros(n,n)
+        for mu in range(n):
+            for nu in range (n):
+                ric[mu,nu] = sum(self.tensor[l,mu,l,nu] for l in range(n))
+        
+        return ricci(ric)
+    
+    def rscal(self, g):
+        return self.ricci().rscal(g)
 
 class ricci:
     def __init__(self, tensor = Matrix([[0]*4 for _ in range(4)]) ):
@@ -106,3 +147,20 @@ class ricci:
     
     def __repr__(self):
         return str(self.tensor)
+    
+    def rscal(self, g):
+        if not isinstance(g, metric):
+            return TypeError("metric g must be of class metric")
+        n = self.tensor.shape[0]
+        ginv = g.tensor.inv()
+        return sum(ginv[mu]*self.tensor[mu] for mu in range(n**2))
+
+if __name__ == "__main__":
+    chi, phi, k = symbols('chi phi k')
+    g = metric(Matrix([[1, 0], [0, (sin(sqrt(k)*chi))**2/k]]))
+    Chr = g.christoffel([chi, phi])
+    Riem = Chr.riemann([chi, phi])
+    Ric = Riem.ricci()
+    Rscal = Ric.rscal(g)
+    
+    print(f"g = {g},\nChr = {Chr},\nRiem = {Riem},\nRic = {Ric},\nRscal = {Rscal}")
