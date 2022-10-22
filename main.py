@@ -33,7 +33,10 @@ class metric:
                     chris[mu][rho][sig] = 0.5*sum(sumlist)
         
         return christoffel(Array(chris))
-        
+    
+    def geodesics(self, variables, parameter):
+        return self.christoffel(variables).geodesics(variables, parameter)
+    
     def riemann(self, variables):
         return self.christoffel(variables).riemann(variables)
     
@@ -61,6 +64,20 @@ class christoffel:
     
     def __repr__(self):
         return str(self.symbol)
+    
+    def geodesics(self, variables, parameter):
+        l = parameter
+        x = variables
+        output = [0] * len(x)
+        
+        for mu in range(len(x)):
+            s = Function(x[mu])(l).diff(l).diff(l)
+            for a in range(len(x)):
+                for b in range(len(x)):
+                    s += self.symbol[mu,a,b]*Function(x[a])(l).diff(l)*Function(x[b])(l).diff(l)
+            output[mu] = Eq(s, 0)
+        
+        return output
     
     def riemann(self, variables):
         n = self.symbol.shape[0]
@@ -139,7 +156,7 @@ class ricci:
         return sum(ginv[mu]*self.tensor[mu] for mu in range(n**2))
 
 if __name__ == "__main__":
-    chi, phi, k = symbols('X phi k')
+    chi, phi, k = symbols('chi phi k')
     g = metric(Matrix([[1, 0], [0, (sin(sqrt(k)*chi))**2/k]]))
     Chr = g.christoffel([chi, phi])
     Riem = Chr.riemann([chi, phi])
