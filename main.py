@@ -3,7 +3,10 @@ from sympy import *
 class metric:
     def __init__(self, tensor = Matrix.diag([-1,1,1,1])):
         if not isinstance(tensor, Matrix):
-            raise TypeError("tensor must be sympy matrix")
+            try:
+                tensor = Matrix(tensor)
+            except TypeError:
+                raise TypeError("tensor must be sympy matrix")
         tens_shape = tensor.shape
         if len(tens_shape) != 2 or not all(n == tens_shape[0] for n in tens_shape):
             raise ValueError("tensor is not a square 2-array")
@@ -49,7 +52,10 @@ class metric:
 class christoffel:
     def __init__(self, symbol = Array([[[0]*4 for _ in range(4)] for __ in range(4)]) ):
         if not isinstance(symbol, Array):
-            raise TypeError("symbol must be sympy array")
+            try:
+                tensor = Array(symbol)
+            except TypeError:
+                raise TypeError("symbol must be sympy array")
         tens_shape = symbol.shape
         if len(tens_shape) != 3 or not all(n == tens_shape[0] for n in tens_shape):
             raise ValueError("symbol is not a square 3-array")
@@ -105,7 +111,10 @@ class christoffel:
 class riemann:
     def __init__(self, tensor = Array([[[[0]*4 for _ in range(4)] for __ in range(4)] for ___ in range(4)]) ):
         if not isinstance(tensor, Array):
-            raise TypeError("tensor must be sympy array")
+            try:
+                tensor = Array(tensor)
+            except TypeError:
+                raise TypeError("tensor must be sympy array")
         tens_shape = tensor.shape
         if len(tens_shape) != 4 or not all(n == tens_shape[0] for n in tens_shape):
             raise ValueError("tensor is not a square 4-array")
@@ -137,7 +146,10 @@ class riemann:
 class ricci:
     def __init__(self, tensor = Matrix([[0]*4 for _ in range(4)]) ):
         if not isinstance(tensor, Matrix):
-            raise TypeError("tensor must be sympy matrix")
+            try:
+                tensor = Matrix(tensor)
+            except TypeError:
+                raise TypeError("tensor must be sympy matrix")
         tens_shape = tensor.shape
         if len(tens_shape) != 2 or not all(n == tens_shape[0] for n in tens_shape):
             raise ValueError("tensor is not a square 2-array")
@@ -156,7 +168,7 @@ class ricci:
         return sum(ginv[mu]*self.tensor[mu] for mu in range(n**2))
 
 if __name__ == "__main__":
-    chi, phi, k = symbols('chi phi k')
+    chi, phi, k = symbols('chi phi kappa')
     g = metric(Matrix([[1, 0], [0, (sin(sqrt(k)*chi))**2/k]]))
     Chr = g.christoffel([chi, phi])
     Riem = Chr.riemann([chi, phi])
